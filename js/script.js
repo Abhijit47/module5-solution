@@ -1,16 +1,16 @@
-$(function () { // Same as document.addEventListener("DOMContentLoaded"...
+$(function () {
+  // Same as document.addEventListener("DOMContentLoaded"...
 
   // Same as document.querySelector("#navbarToggle").addEventListener("blur",...
   $("#navbarToggle").blur(function (event) {
     var screenWidth = window.innerWidth;
     if (screenWidth < 768) {
-      $("#collapsable-nav").collapse('hide');
+      $("#collapsable-nav").collapse("hide");
     }
   });
 });
 
 (function (global) {
-
   var dc = {};
 
   var homeHtmlUrl = "snippets/home-snippet.html";
@@ -40,8 +40,7 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
   // with propValue in given 'string'
   var insertProperty = function (string, propName, propValue) {
     var propToReplace = "{{" + propName + "}}";
-    string = string
-      .replace(new RegExp(propToReplace, "g"), propValue);
+    string = string.replace(new RegExp(propToReplace, "g"), propValue);
     return string;
   };
 
@@ -62,7 +61,6 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
 
   // On page load (before images or CSS)
   document.addEventListener("DOMContentLoaded", function (event) {
-
     // TODO: STEP 0: Look over the code from
     // *** start ***
     // to
@@ -83,27 +81,29 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     showLoading("#main-content");
     $ajaxUtils.sendGetRequest(
       allCategoriesUrl,
-      buildAndShowHomeHTML,
-      true); // Explicitly setting the flag to get JSON from server processed into an object literal
+      function (request) {
+        buildAndShowHomeHTML(request);
+      }, // ***** <---- TODO: STEP 1: Substitute [...] ******
+      true
+    ); // Explicitely setting the flag to get JSON from server processed into an object literal
   });
   // *** finish **
-
 
   // Builds HTML for the home page based on categories array
   // returned from the server.
   function buildAndShowHomeHTML(categories) {
-
     // Load home snippet page
     $ajaxUtils.sendGetRequest(
       homeHtmlUrl,
       function (homeHtml) {
-
         // TODO: STEP 2: Here, call chooseRandomCategory, passing it retrieved 'categories'
         // Pay attention to what type of data that function returns vs what the chosenCategoryShortName
         // variable's name implies it expects.
         // var chosenCategoryShortName = ....
+        //console.log(homeHtml);
+        var chosenCategoryShortName =
+          chooseRandomCategory(categories).short_name;
 
-        var chosenCategoryShortName = chosenCategory(categories).short_name;
         // TODO: STEP 3: Substitute {{randomCategoryShortName}} in the home html snippet with the
         // chosen category from STEP 2. Use existing insertProperty function for that purpose.
         // Look through this code for an example of how to do use the insertProperty function.
@@ -116,18 +116,21 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
         // it into the home html snippet.
         //
         // var homeHtmlToInsertIntoMainPage = ....
+        var homeHtmlToInsertIntoMainPage = insertProperty(
+          homeHtml,
+          "randomCategoryShortName",
+          "'" + chosenCategoryShortName + "'"
+        );
 
-        var homeHtmlToInsertIntoMainPage = insertProperty(homeHtml, "randomCategoryShortName", "+chosenCategoryShortName");
-
-        // TODO: STEP 4: Insert the produced HTML in STEP 3 into the main page
+        // TODO: STEP 4: Insert the the produced HTML in STEP 3 into the main page
         // Use the existing insertHtml function for that purpose. Look through this code for an example
         // of how to do that.
         // ....
-
+        insertHtml("#main-content", homeHtmlToInsertIntoMainPage);
       },
-      false); // False here because we are getting just regular HTML from the server, so no need to process JSON.
+      false
+    ); // False here because we are getting just regular HTML from the server, so no need to process JSON.
   }
-
 
   // Given array of category objects, returns a random category object.
   function chooseRandomCategory(categories) {
@@ -138,15 +141,11 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     return categories[randomArrayIndex];
   }
 
-
   // Load the menu categories view
   dc.loadMenuCategories = function () {
     showLoading("#main-content");
-    $ajaxUtils.sendGetRequest(
-      allCategoriesUrl,
-      buildAndShowCategoriesHTML);
+    $ajaxUtils.sendGetRequest(allCategoriesUrl, buildAndShowCategoriesHTML);
   };
-
 
   // Load the menu items view
   // 'categoryShort' is a short_name for a category
@@ -154,9 +153,9 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     showLoading("#main-content");
     $ajaxUtils.sendGetRequest(
       menuItemsUrl + categoryShort,
-      buildAndShowMenuItemsHTML);
+      buildAndShowMenuItemsHTML
+    );
   };
-
 
   // Builds HTML for the categories page based on the data
   // from the server
@@ -172,24 +171,27 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
             // Switch CSS class active to menu button
             switchMenuToActive();
 
-            var categoriesViewHtml =
-              buildCategoriesViewHtml(categories,
-                categoriesTitleHtml,
-                categoryHtml);
+            var categoriesViewHtml = buildCategoriesViewHtml(
+              categories,
+              categoriesTitleHtml,
+              categoryHtml
+            );
             insertHtml("#main-content", categoriesViewHtml);
           },
-          false);
+          false
+        );
       },
-      false);
+      false
+    );
   }
-
 
   // Using categories data and snippets html
   // build categories view HTML to be inserted into page
-  function buildCategoriesViewHtml(categories,
+  function buildCategoriesViewHtml(
+    categories,
     categoriesTitleHtml,
-    categoryHtml) {
-
+    categoryHtml
+  ) {
     var finalHtml = categoriesTitleHtml;
     finalHtml += "<section class='row'>";
 
@@ -199,20 +201,14 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
       var html = categoryHtml;
       var name = "" + categories[i].name;
       var short_name = categories[i].short_name;
-      html =
-        insertProperty(html, "name", name);
-      html =
-        insertProperty(html,
-          "short_name",
-          short_name);
+      html = insertProperty(html, "name", name);
+      html = insertProperty(html, "short_name", short_name);
       finalHtml += html;
     }
 
     finalHtml += "</section>";
     return finalHtml;
   }
-
-
 
   // Builds HTML for the single category page based on the data
   // from the server
@@ -228,32 +224,37 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
             // Switch CSS class active to menu button
             switchMenuToActive();
 
-            var menuItemsViewHtml =
-              buildMenuItemsViewHtml(categoryMenuItems,
-                menuItemsTitleHtml,
-                menuItemHtml);
+            var menuItemsViewHtml = buildMenuItemsViewHtml(
+              categoryMenuItems,
+              menuItemsTitleHtml,
+              menuItemHtml
+            );
             insertHtml("#main-content", menuItemsViewHtml);
           },
-          false);
+          false
+        );
       },
-      false);
+      false
+    );
   }
-
 
   // Using category and menu items data and snippets html
   // build menu items view HTML to be inserted into page
-  function buildMenuItemsViewHtml(categoryMenuItems,
+  function buildMenuItemsViewHtml(
+    categoryMenuItems,
     menuItemsTitleHtml,
-    menuItemHtml) {
-
-    menuItemsTitleHtml =
-      insertProperty(menuItemsTitleHtml,
-        "name",
-        categoryMenuItems.category.name);
-    menuItemsTitleHtml =
-      insertProperty(menuItemsTitleHtml,
-        "special_instructions",
-        categoryMenuItems.category.special_instructions);
+    menuItemHtml
+  ) {
+    menuItemsTitleHtml = insertProperty(
+      menuItemsTitleHtml,
+      "name",
+      categoryMenuItems.category.name
+    );
+    menuItemsTitleHtml = insertProperty(
+      menuItemsTitleHtml,
+      "special_instructions",
+      categoryMenuItems.category.special_instructions
+    );
 
     var finalHtml = menuItemsTitleHtml;
     finalHtml += "<section class='row'>";
@@ -264,36 +265,22 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     for (var i = 0; i < menuItems.length; i++) {
       // Insert menu item values
       var html = menuItemHtml;
-      html =
-        insertProperty(html, "short_name", menuItems[i].short_name);
-      html =
-        insertProperty(html,
-          "catShortName",
-          catShortName);
-      html =
-        insertItemPrice(html,
-          "price_small",
-          menuItems[i].price_small);
-      html =
-        insertItemPortionName(html,
-          "small_portion_name",
-          menuItems[i].small_portion_name);
-      html =
-        insertItemPrice(html,
-          "price_large",
-          menuItems[i].price_large);
-      html =
-        insertItemPortionName(html,
-          "large_portion_name",
-          menuItems[i].large_portion_name);
-      html =
-        insertProperty(html,
-          "name",
-          menuItems[i].name);
-      html =
-        insertProperty(html,
-          "description",
-          menuItems[i].description);
+      html = insertProperty(html, "short_name", menuItems[i].short_name);
+      html = insertProperty(html, "catShortName", catShortName);
+      html = insertItemPrice(html, "price_small", menuItems[i].price_small);
+      html = insertItemPortionName(
+        html,
+        "small_portion_name",
+        menuItems[i].small_portion_name
+      );
+      html = insertItemPrice(html, "price_large", menuItems[i].price_large);
+      html = insertItemPortionName(
+        html,
+        "large_portion_name",
+        menuItems[i].large_portion_name
+      );
+      html = insertProperty(html, "name", menuItems[i].name);
+      html = insertProperty(html, "description", menuItems[i].description);
 
       // Add clearfix after every second menu item
       if (i % 2 !== 0) {
@@ -308,11 +295,8 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     return finalHtml;
   }
 
-
   // Appends price with '$' if price exists
-  function insertItemPrice(html,
-    pricePropName,
-    priceValue) {
+  function insertItemPrice(html, pricePropName, priceValue) {
     // If not specified, replace with empty string
     if (!priceValue) {
       return insertProperty(html, pricePropName, "");
@@ -323,11 +307,8 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     return html;
   }
 
-
   // Appends portion name in parens if it exists
-  function insertItemPortionName(html,
-    portionPropName,
-    portionValue) {
+  function insertItemPortionName(html, portionPropName, portionValue) {
     // If not specified, return original string
     if (!portionValue) {
       return insertProperty(html, portionPropName, "");
@@ -338,7 +319,5 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
     return html;
   }
 
-
   global.$dc = dc;
-
 })(window);
